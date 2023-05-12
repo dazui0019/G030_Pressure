@@ -25,10 +25,10 @@ static HAL_StatusTypeDef lcd_fourBit_Write(uint8_t data, uint8_t rs){
     // 分割成高低四位，然后还要改变EN引脚的电平，所以一共有四部分
     // 高四位
     DATA_BUFFER[0] = (HIGH_BIT | rs | En | LCD_BACKLIGHT); // EN = 1
-    DATA_BUFFER[1] = (HIGH_BIT | rs | LCD_BACKLIGHT);            // EN = 0
+    DATA_BUFFER[1] = (HIGH_BIT | rs | LCD_BACKLIGHT);      // EN = 0
     // 低四位
     DATA_BUFFER[2] = (LOW_BIT | rs | En | LCD_BACKLIGHT); // EN = 1
-    DATA_BUFFER[3] = (LOW_BIT | rs | LCD_BACKLIGHT);            // EN = 0
+    DATA_BUFFER[3] = (LOW_BIT | rs | LCD_BACKLIGHT);      // EN = 0
     HAL_Delay(LCD_DELAY_MS);
     while((HAL_I2C_IsDeviceReady(IIC_DEVICE, PCF8574_ADDR, 1, 100)) != HAL_OK){}
     return HAL_I2C_Master_Transmit(IIC_DEVICE, PCF8574_ADDR, (uint8_t*)DATA_BUFFER, sizeof(DATA_BUFFER), 100);

@@ -27,7 +27,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "retarget.h"
 #include "tiny_lcd.h"
 #include "it_manager.h"
 #include "printf.h"
@@ -123,10 +122,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      // Tim1 �?????10ms触发�?????次（相当于每10ms采样�?????次气压�?�）
+      // Tim1 每10ms触发1次（相当于每10ms采样1次气压值）
       if(Timer_State.Timer1){
           currentPrs = get_pressure();
-          // 在气压到达特定�?�时记录时间
+          // 在气压到达特定值时记录时间
           if(currentPrs < -0.5 && startFlag){
               startTick = HAL_GetTick();
               char str[10];
@@ -143,16 +142,16 @@ int main(void)
               endTick = HAL_GetTick();
               printf("endTick: %d\r\n", endTick);
           }
-          else if(currentPrs > -0.3) {startFlag = SET;} // 气压值大�?????-0.3重新�?????始计�?????
+          else if(currentPrs > -0.3) {startFlag = SET;} // 气压值大于-0.3重新开始记录
 
           Timer_State.Timer1 = RESET;
       }
 
       static uint8_t counter = 0;
-      // tim3 250ms 触发�?????次，刷新气压数据
+      // tim3 250ms 触发1次，刷新气压数据
       if(Timer_State.Timer3){
           HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-          if(counter >= 5){ // 云动�????? 5*250ms 刷新�?????次�??
+          if(counter >= 5){ // 云动画 5*250ms 刷新1次
               counter = 0;
               tiny_lcd_cloud(0);
           }
