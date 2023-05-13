@@ -84,6 +84,9 @@ static const char* const sta_str[] = {"tens ", "relax", "wait."};
 #define Rw 0B00000010  // Read/Write bit
 #define Rs 0B00000001  // Register select bit
 
+/**
+ * @brief 肌肉状态
+ */
 typedef enum{
     TENSION = 0x00,
     RELAX   = 0x01,

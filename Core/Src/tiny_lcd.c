@@ -35,7 +35,7 @@ static HAL_StatusTypeDef lcd_fourBit_Write(uint8_t data, uint8_t rs){
 }
 
 /**
- * @brief 发送单个数据(显示)
+ * @brief 发送单个数据
  * @param data[in]
  */
 void lcd_sendData(uint8_t data){
@@ -50,6 +50,11 @@ void lcd_sendCmd(uint8_t cmd){
     lcd_fourBit_Write(cmd, LCD_COMMAND);
 }
 
+/**
+ * @brief 设置光标位置（字符显示位置）
+ * @param col[in] 列坐标
+ * @param row[in] 行坐标
+ */
 void lcd_setCursor(uint8_t col, uint8_t row){
     //                           row:0    row:1     row:2   row:3
     uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
@@ -78,23 +83,37 @@ void lcd_init(){
     printf("LCD Inited\r\n");
 }
 
+/**
+ * @brief 打印字符串到LCD1602
+ * @param str[in]
+ */
 void lcd_print(char const str[]){
     uint8_t i = 0;
     while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
 }
 
+/**
+ * @brief 打印字符串到指定坐标
+ * @param str[in]
+ * @param col[in] 列坐标
+ * @param row[in] 行坐标
+ */
 void lcd_print_c(char const str[], uint8_t col, uint8_t row){
     lcd_setCursor(col, row);
     int i = 0;
     while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
 }
 
+/**
+ * @brief 格式化打印到LCD1602
+ * @param fmt
+ * @param ...
+ */
 void lcd_printf(char *fmt, ...){
     va_list va;
     va_start(va, fmt);
     char str[10] = "0";
     uint8_t i = 0;
-//    printf("va: %d\r\n", va_arg(va, int));
     memset(str, '\0', sizeof(char)*10);
     sprintf(str, fmt, va_arg(va, int));
     while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
@@ -134,7 +153,10 @@ uint8_t lcd_print_frame(){
     return 0;
 }
 
-//
+/**
+ * @brief 打印气压值到LCD1602
+ * @param val[in] 气压值
+ */
 void lcd_print_val(double val){
     /**
      * 数值相同的标志，或许可以改善记录startTick的时机，
@@ -205,6 +227,10 @@ void tiny_lcd_cloud(uint8_t col){
     }
 }
 
+/**
+ * @brief 打印肌肉状态
+ * @param sta
+ */
 void lcd_display_sta(muscleStatus sta){
     lcd_print_c(sta_str[sta], 10, 1);
 }

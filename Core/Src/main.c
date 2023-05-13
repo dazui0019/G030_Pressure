@@ -64,12 +64,22 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 Prs_HandleTypeDef prsList = {.length = MAXSIZE};
 double currentPrs = 0.0;
+
+/**
+ * @brief 滴答数，通过startTick和endTick的差值（时间长短）来判断肌肉的紧张程度
+ */
 uint32_t startTick = 0;
 uint32_t endTick = 0;
 
+/**
+ * @brief 计时的标志位
+ */
 uint8_t endFlag = RESET;
 uint8_t startFlag = SET;
 
+/**
+ * @brief 计数的气压终值（气压达到该值时，停止计时并显示肌肉紧张程度）,终值需要添加负号(即，-endVal)
+ */
 uint8_t endVal = 30;
 /* USER CODE END 0 */
 
@@ -110,12 +120,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_Base_Start_IT(&htim3);
-    init_print(&huart1);
+    init_print(&huart1); // 重定向printf()
     printf("printf retargeted!\r\n");
     pressure_init(&hadc1, &prsList);
     lcd_init();
-    lcd_createChars(cloud, 0x00, 7);
-    lcd_print_frame();
+    lcd_print_frame(); // 打印UI框架
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -130,9 +139,7 @@ int main(void)
               startTick = HAL_GetTick();
               char str[10];
               bon_ftos(str, currentPrs, 1);
-              print("prs: ");
-              print(str);
-              println("kPa");
+              printf("prs: %skPa\r\n", str);
               printf("startTick: %d\r\n", startTick);
               startFlag = RESET;
               endFlag = SET;
@@ -140,6 +147,9 @@ int main(void)
           else if(currentPrs <= -endVal && endFlag){
               endFlag=RESET;
               endTick = HAL_GetTick();
+              char str[10];
+              bon_ftos(str, currentPrs, 1);
+              printf("prs: %skPa\r\n", str);
               printf("endTick: %d\r\n", endTick);
               if((endTick - startTick) > 5000){ lcd_display_sta(TENSION); }
               else { lcd_display_sta(RELAX); }
@@ -152,37 +162,39 @@ int main(void)
           Timer_State.Timer1 = RESET;
       }
 
-//      static uint8_t counter = 0;
-      // tim3 250ms 触发1次，刷新LCD
+      // tim3 每250ms触发1次，刷新LCD
       if(Timer_State.Timer3){
-          HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//          HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//          if(counter >= 5){ // 云动画 5*250ms 刷新1次
-//              counter = 0;
-//              tiny_lcd_cloud(0);
-//          }
+          HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // 闪烁LED
 //          lcd_print_val((currentPrs > -0.3) ? 0:currentPrs);
           lcd_print_val(currentPrs);
           Timer_State.Timer3 = RESET;
-//          counter+=1;
       }
+
+      /**
+       * @brief 按下按键进入该函数，若在两秒内再次按下按键，则变量endVal自增5.
+       */
       if(GPIO_State.KEY1){
           HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+          // 刷新LCD上的endVal
           lcd_setCursor(0, 1);
           lcd_printf("Up:%d", endVal);
           lcd_setCursor(4, 1);
-          lcd_sendCmd(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
-          uint32_t uiTick = HAL_GetTick();
+          lcd_sendCmd(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON); // 显示光标
+
+          uint32_t uiTick = HAL_GetTick(); // 用来检测按键超时
           GPIO_State.KEY1 = RESET;
           while(1){
-              if((HAL_GetTick()-uiTick) > 2000) { break; }
-              else if(GPIO_State.KEY1 == SET){
-                  if(endVal>=90) { endVal = 50; }
+              if((HAL_GetTick()-uiTick) > 2000) { break; } // 检测按键是否超时（2s），在该时间内按下按键会刷新uiTick的值
+              else if(GPIO_State.KEY1 == SET){ // 按下按键
+                  // 自增endVal
+                  if(endVal>=90) { endVal = 50; } // 大于90后，重置为30.
                   else { endVal += 5; }
+                  // 刷新LCD上的endVal
                   lcd_setCursor(0, 1);
                   lcd_printf("Up:%d", endVal);
                   lcd_setCursor(4, 1);
-                  uiTick = HAL_GetTick();
+                  uiTick = HAL_GetTick(); // 两秒内按下按键，则刷新uiTick值。
                   GPIO_State.KEY1 = RESET;
               }
           }

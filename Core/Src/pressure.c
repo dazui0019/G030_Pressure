@@ -9,6 +9,10 @@
 
 Prs_HandleTypeDef* pres_list;
 
+/**
+ * @brief 获取气压值
+ * @return
+ */
 double get_pressure(){
 //    printf("voltage: %ld\r\n", (uint32_t)get_currentVol(pres_list));
     return ((get_currentVol(pres_list)-115)/25-108);
@@ -16,7 +20,7 @@ double get_pressure(){
 
 /**
  * @brief 获取ADC当前的电压值
- * @param L
+ * @param L[in]
  * @return 当前的电压值
  */
 float get_currentVol(Prs_HandleTypeDef* L){
@@ -36,14 +40,25 @@ float get_currentVol(Prs_HandleTypeDef* L){
 }
 
 /**
- * @brief 设置单位值（1kPa对应的电压值）
- * @param L
+ * @brief 设置单位值（1kPa对应的电压值）,已废弃
  * @return
  */
 float set_unit(){
     HAL_Delay(100); // 等待DMA转换。
     float current_val = get_currentVol(pres_list);
     return pres_list->prs_unit =  (current_val-200)/100;
+}
+
+/**
+ * @brief 初始化 ADC
+ * @param adc[in]
+ * @param L[in]
+ */
+void pressure_init(ADC_HandleTypeDef* adc, Prs_HandleTypeDef* L){
+    pres_list = L;
+    HAL_ADCEx_Calibration_Start(adc); // ADC自动标定
+    HAL_ADC_Start_DMA(adc, &(pres_list->adcVal[1]), pres_list->length);
+
 }
 
 /**
@@ -73,14 +88,6 @@ static void bubbleSort(Prs_HandleTypeDef* L){
     }
 }
 
-void pressure_init(ADC_HandleTypeDef* adc, Prs_HandleTypeDef* L){
-    pres_list = L;
-    HAL_ADCEx_Calibration_Start(adc);
-//    printf("Calibration: %ld\r\n", HAL_ADCEx_Calibration_GetValue(adc));
-    HAL_ADC_Start_DMA(adc, &(pres_list->adcVal[1]), pres_list->length);
-
-}
-
 /**
  * @brief x^y
  * @param x
@@ -100,6 +107,12 @@ int32_t int_pow(int32_t x, int32_t y){
     }
 }
 
+/**
+ * @brief 出栈
+ * @param S[in]
+ * @param e[out]
+ * @return
+ */
 uint8_t Pop(SqStack* S, SElemType* e){
     if(S->top == -1)
         return 1; //栈空
@@ -108,6 +121,12 @@ uint8_t Pop(SqStack* S, SElemType* e){
     return 0;
 }
 
+/**
+ * @brief 入栈
+ * @param S[in]
+ * @param e[in]
+ * @return
+ */
 uint8_t Push(SqStack* S, SElemType e){
     if(S->top == MAXSIZE-1)
         return 1; // 栈满
