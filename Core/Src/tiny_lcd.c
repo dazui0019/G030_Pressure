@@ -78,13 +78,27 @@ void lcd_init(){
     printf("LCD Inited\r\n");
 }
 
-void lcd_print(char str[]){
-    while(*str != '\0') { lcd_sendData((uint8_t)(*str++)); }
+void lcd_print(char const str[]){
+    uint8_t i = 0;
+    while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
 }
 
-void lcd_print_c(char str[], uint8_t col, uint8_t row){
+void lcd_print_c(char const str[], uint8_t col, uint8_t row){
     lcd_setCursor(col, row);
-    while(*str != '\0') { lcd_sendData((uint8_t)(*str++)); }
+    int i = 0;
+    while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
+}
+
+void lcd_printf(char *fmt, ...){
+    va_list va;
+    va_start(va, fmt);
+    char str[10] = "0";
+    uint8_t i = 0;
+//    printf("va: %d\r\n", va_arg(va, int));
+    memset(str, '\0', sizeof(char)*10);
+    sprintf(str, fmt, va_arg(va, int));
+    while(str[i] != '\0') { lcd_sendData((uint8_t)(str[i++])); }
+    va_end(va);
 }
 
 /**
@@ -115,10 +129,8 @@ uint8_t lcd_createChars(uint8_t buff[][8], uint8_t addr, uint8_t len){
 
 // 显示框架
 uint8_t lcd_print_frame(){
-    char skeleton[20] = "0";
-    memset(skeleton, '\0', sizeof(char)*20);
-    sprintf(skeleton, "Prs:      kPa");
-    lcd_print_c(skeleton, 3, 0);
+    lcd_print_c(frame[0],0,0);
+    lcd_print_c(frame[1],0,1);
     return 0;
 }
 
@@ -137,10 +149,7 @@ void lcd_print_val(double val){
         sameFlag = RESET;
     }else{ sameFlag = SET; }
 
-    if(sameFlag){
-//        println("same val");
-        return;
-    }
+    if(sameFlag) { return; }
 
     uint8_t len = 0;
     int32_t temp = 0;
@@ -161,7 +170,7 @@ void lcd_print_val(double val){
     memset(str_float, '\0', sizeof(char)*CVT_BUFFER);
     for(int i = 0; !Pop(&charStack, &temp); ) { str_float[i++] = (char)temp; }
     lcd_sendCmd(LCD_ENTRYMODESET | LCD_ENTRY_DEC | LCD_ENTRYSHIFT_OFF);
-    lcd_print_c(str_float, 15-3, 0);
+    lcd_print_c(str_float, 15-3-3, 0);
     while(str_float[len]!='\0') { len+=1; }
     for(int i = (6-len); i > 0; i--) { lcd_print(" "); } // 留给数据的显示区域一共有6位，多余的位用空格“ ”来覆盖刷新。
     lcd_sendCmd(LCD_ENTRYMODESET | LCD_ENTRY_INC | LCD_ENTRYSHIFT_OFF);
@@ -194,4 +203,8 @@ void tiny_lcd_cloud(uint8_t col){
             flag = 1;
             break;
     }
+}
+
+void lcd_display_sta(muscleStatus sta){
+    lcd_print_c(sta_str[sta], 10, 1);
 }

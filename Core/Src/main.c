@@ -69,6 +69,8 @@ uint32_t endTick = 0;
 
 uint8_t endFlag = RESET;
 uint8_t startFlag = SET;
+
+uint8_t endVal = 30;
 /* USER CODE END 0 */
 
 /**
@@ -109,13 +111,11 @@ int main(void)
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_Base_Start_IT(&htim3);
     init_print(&huart1);
-    printf("printf retargeted!");
+    printf("printf retargeted!\r\n");
     pressure_init(&hadc1, &prsList);
     lcd_init();
     lcd_createChars(cloud, 0x00, 7);
-    set_unit();
     lcd_print_frame();
-    tiny_lcd_cloud(0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -137,33 +137,56 @@ int main(void)
               startFlag = RESET;
               endFlag = SET;
           }
-          else if(currentPrs <= -50 && endFlag){
+          else if(currentPrs <= -endVal && endFlag){
               endFlag=RESET;
               endTick = HAL_GetTick();
               printf("endTick: %d\r\n", endTick);
+              if((endTick - startTick) > 5000){ lcd_display_sta(TENSION); }
+              else { lcd_display_sta(RELAX); }
           }
-          else if(currentPrs > -0.3) {startFlag = SET;} // 气压值大于-0.3重新开始记录
+          else if((currentPrs > -0.3) && !startFlag) { // 气压值大于-0.3重新开始记录
+              startFlag = SET;
+              lcd_display_sta(WAIT); // 重置肌肉状态
+          }
 
           Timer_State.Timer1 = RESET;
       }
 
-      static uint8_t counter = 0;
-      // tim3 250ms 触发1次，刷新气压数据
+//      static uint8_t counter = 0;
+      // tim3 250ms 触发1次，刷新LCD
       if(Timer_State.Timer3){
           HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-          if(counter >= 5){ // 云动画 5*250ms 刷新1次
-              counter = 0;
-              tiny_lcd_cloud(0);
-          }
-          lcd_print_val((currentPrs > -0.1) ? 0:currentPrs);
+//          HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//          if(counter >= 5){ // 云动画 5*250ms 刷新1次
+//              counter = 0;
+//              tiny_lcd_cloud(0);
+//          }
+//          lcd_print_val((currentPrs > -0.3) ? 0:currentPrs);
+          lcd_print_val(currentPrs);
           Timer_State.Timer3 = RESET;
-          counter+=1;
+//          counter+=1;
       }
       if(GPIO_State.KEY1){
-//          HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-          set_unit();
-          printf("Set unit\r\n");
+          HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+          lcd_setCursor(0, 1);
+          lcd_printf("Up:%d", endVal);
+          lcd_setCursor(4, 1);
+          lcd_sendCmd(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
+          uint32_t uiTick = HAL_GetTick();
           GPIO_State.KEY1 = RESET;
+          while(1){
+              if((HAL_GetTick()-uiTick) > 2000) { break; }
+              else if(GPIO_State.KEY1 == SET){
+                  if(endVal>=90) { endVal = 50; }
+                  else { endVal += 5; }
+                  lcd_setCursor(0, 1);
+                  lcd_printf("Up:%d", endVal);
+                  lcd_setCursor(4, 1);
+                  uiTick = HAL_GetTick();
+                  GPIO_State.KEY1 = RESET;
+              }
+          }
+          lcd_sendCmd(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF);
       }
 
     /* USER CODE END WHILE */

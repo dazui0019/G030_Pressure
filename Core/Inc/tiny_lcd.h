@@ -18,6 +18,13 @@ static uint8_t cloud[][8] = {
         {0B00000, 0B10000, 0B01001, 0B00110, 0B10000, 0B01001, 0B00110, 0B00000}
 };
 
+static const char* const frame[] = {
+        "Prs:      kPa",
+        "Up:30 STA:NULL"
+};
+
+static const char* const sta_str[] = {"tens ", "relax", "wait."};
+
 /**
  * PCF8574 参数
  */
@@ -77,16 +84,25 @@ static uint8_t cloud[][8] = {
 #define Rw 0B00000010  // Read/Write bit
 #define Rs 0B00000001  // Register select bit
 
+typedef enum{
+    TENSION = 0x00,
+    RELAX   = 0x01,
+    WAIT    = 0x02
+}muscleStatus;
+
 void lcd_init();
 static HAL_StatusTypeDef lcd_fourBit_Write(uint8_t data, uint8_t rs);
 void lcd_sendCmd(uint8_t cmd);
 void lcd_sendData(uint8_t data);
 void lcd_setCursor(uint8_t col, uint8_t row);
-void lcd_print(char str[]);
+void lcd_print(char const str[]);
 static void lcd_createChar(uint8_t buff[], uint8_t addr);
 uint8_t lcd_createChars(uint8_t buff[][8], uint8_t addr, uint8_t len);
 void tiny_lcd_cloud(uint8_t col);
-void lcd_print_c(char str[], uint8_t col, uint8_t row);
+void lcd_print_c(char const str[], uint8_t col, uint8_t row);
+void lcd_printf(char *fmt, ...);
 uint8_t lcd_print_frame();
 void lcd_print_val(double val);
+void lcd_display_sta(muscleStatus sta);
+
 #endif //G030_PRESSURE_TINY_LCD_H

@@ -1,6 +1,6 @@
 # G030_Pressure
 
-[LCD1602](/LCD1602.md) | [PCF8574](/PCF8574.md)
+[LCD1602](/LCD1602.md) | [PCF8574](/PCF8574.md) | [6874A](/6874A.md)
 
 ## 打开工程
 

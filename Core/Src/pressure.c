@@ -10,7 +10,8 @@
 Prs_HandleTypeDef* pres_list;
 
 double get_pressure(){
-    return ((get_currentVol(pres_list)-200)/pres_list->prs_unit)-100;
+//    printf("voltage: %ld\r\n", (uint32_t)get_currentVol(pres_list));
+    return ((get_currentVol(pres_list)-115)/25-108);
 }
 
 /**
@@ -30,8 +31,8 @@ float get_currentVol(Prs_HandleTypeDef* L){
     for(int i=1; i<=temp_list.length; i+=1)
         temp+=temp_list.adcVal[i];
     float flitted_adc = (float)temp/(float)(temp_list.length-2);// 滤波后的ADC原始数据
-
-    return L->voltage = (float)((flitted_adc/4096.0f)*3300.0f); // 滤波后的电压值
+//    printf("flitted_adc: %ld\r\n", (uint32_t)flitted_adc);
+    return L->voltage = (float)((flitted_adc/4095.0f)*3300.0f); // 滤波后的电压值
 }
 
 /**
@@ -74,7 +75,10 @@ static void bubbleSort(Prs_HandleTypeDef* L){
 
 void pressure_init(ADC_HandleTypeDef* adc, Prs_HandleTypeDef* L){
     pres_list = L;
+    HAL_ADCEx_Calibration_Start(adc);
+//    printf("Calibration: %ld\r\n", HAL_ADCEx_Calibration_GetValue(adc));
     HAL_ADC_Start_DMA(adc, &(pres_list->adcVal[1]), pres_list->length);
+
 }
 
 /**
