@@ -7,7 +7,15 @@
 #include <math.h>
 #include "printf.h"
 
+char cvtStr[CVT_BUFFER];
+
 Prs_HandleTypeDef* pres_list;
+
+/* 设置传感器输出电压的偏移量, 实际测得0kPa时的电压要多100mV, 这个多出来的电压就是偏移量 */
+void set_offset(Prs_HandleTypeDef* L){
+    L->offset = get_currentVol(L)-2700;
+    printf("offset: %s\r\n", FtoS(L->offset, 2));
+}
 
 /**
  * @brief 获取气压值
@@ -15,11 +23,11 @@ Prs_HandleTypeDef* pres_list;
  */
 double get_pressure(){
 //    printf("voltage: %ld\r\n", (uint32_t)get_currentVol(pres_list));
-    return ((get_currentVol(pres_list)-115)/25-108);
+    return ((get_currentVol(pres_list)-(pres_list->offset))/25-108);
 }
 
 /**
- * @brief 获取ADC当前的电压值
+ * @brief 获取ADC当前的电压值，单位 mV
  * @param L[in]
  * @return 当前的电压值
  */
@@ -56,9 +64,10 @@ float set_unit(){
  */
 void pressure_init(ADC_HandleTypeDef* adc, Prs_HandleTypeDef* L){
     pres_list = L;
-    HAL_ADCEx_Calibration_Start(adc); // ADC自动标定
+    HAL_ADCEx_Calibration_Start(adc); // ADC自动标定（自动校准）
     HAL_ADC_Start_DMA(adc, &(pres_list->adcVal[1]), pres_list->length);
-
+    HAL_Delay(100);
+    set_offset(pres_list);
 }
 
 /**
@@ -140,7 +149,7 @@ uint8_t Push(SqStack* S, SElemType e){
  * @param s[in]
  * @param val[in]
  * @param n[in] 需要保留的小数位长度
- * @return
+ * @return 0: 转换完成 1: 超出缓冲区
  */
 uint8_t bon_ftos(char s[], double val, uint8_t n){
     memset(s, '\0', sizeof(char)*CVT_BUFFER);
@@ -188,4 +197,9 @@ uint8_t bon_ftos(char s[], double val, uint8_t n){
         s[i]=(char)temp+'0';
     // 没有给末尾加上'\0'，因为之前memset中已经把s里的元素全部设为'0'了，所以只要别溢出，就不会出问题。
     return 0;
+}
+
+char* FtoS(double val, uint8_t n){
+    bon_ftos(cvtStr, val, n);
+    return cvtStr;
 }

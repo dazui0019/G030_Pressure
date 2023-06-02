@@ -20,10 +20,10 @@ static uint8_t cloud[][8] = {
 
 static const char* const frame[] = {
         "Prs:      kPa",
-        "Up:30 STA:NULL"
+        "Up:30 STA:read."
 };
 
-static const char* const sta_str[] = {"tens ", "relax", "wait."};
+static const char* const sta_str[] = {"tens ", "relax", "ready"};
 
 /**
  * PCF8574 参数
@@ -32,7 +32,7 @@ static const char* const sta_str[] = {"tens ", "relax", "wait."};
 #define IIC_DEVICE &hi2c2
 #define PCF8574_ADDR (0x40|(PCF8574_ADDRESS_A111<<1))
 
-#define LCD_DELAY_MS    5
+#define LCD_DELAY_MS    10
 
 // send data or command
 #define LCD_COMMAND     ((uint8_t)(0x00))
@@ -90,7 +90,7 @@ static const char* const sta_str[] = {"tens ", "relax", "wait."};
 typedef enum{
     TENSION = 0x00,
     RELAX   = 0x01,
-    WAIT    = 0x02
+    READY   = 0x02
 }muscleStatus;
 
 void lcd_init();
@@ -107,5 +107,7 @@ void lcd_printf(char *fmt, ...);
 uint8_t lcd_print_frame();
 void lcd_print_val(double val);
 void lcd_display_sta(muscleStatus sta);
+void lcd_display_sta_b(muscleStatus sta);
+void backLight_blink();
 
 #endif //G030_PRESSURE_TINY_LCD_H

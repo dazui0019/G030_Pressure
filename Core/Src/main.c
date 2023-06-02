@@ -52,6 +52,7 @@
 
 /* USER CODE BEGIN PV */
 Prs_HandleTypeDef Pressure;
+extern uint8_t backlightval;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,8 +122,9 @@ int main(void)
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_Base_Start_IT(&htim3);
     init_print(&huart1); // 重定向printf()
-    printf("printf retargeted!\r\n");
+    printf("%s\r\n", "printf retargeted!");
     pressure_init(&hadc1, &prsList);
+    println("pressure init");
     lcd_init();
     lcd_print_frame(); // 打印UI框架
   /* USER CODE END 2 */
@@ -145,28 +147,28 @@ int main(void)
               endFlag = SET;
           }
           else if(currentPrs <= -endVal && endFlag){
+              lcd_print_val(currentPrs);
               endFlag=RESET;
               endTick = HAL_GetTick();
               char str[10];
               bon_ftos(str, currentPrs, 1);
               printf("prs: %skPa\r\n", str);
               printf("endTick: %d\r\n", endTick);
-              if((endTick - startTick) > 5000){ lcd_display_sta(TENSION); }
-              else { lcd_display_sta(RELAX); }
+              if((endTick - startTick) > 5000){ lcd_display_sta_b(TENSION); }
+              else { lcd_display_sta_b(RELAX); }
           }
           else if((currentPrs > -0.3) && !startFlag) { // 气压值大于-0.3重新开始记录
               startFlag = SET;
-              lcd_display_sta(WAIT); // 重置肌肉状态
+              lcd_display_sta(READY); // 重置肌肉状态
           }
-
           Timer_State.Timer1 = RESET;
       }
 
       // tim3 每250ms触发1次，刷新LCD
       if(Timer_State.Timer3){
           HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // 闪烁LED
-//          lcd_print_val((currentPrs > -0.3) ? 0:currentPrs);
-          lcd_print_val(currentPrs);
+          lcd_print_val((currentPrs >= -0.2) ? 0:currentPrs);
+//          lcd_print_val(currentPrs);
           Timer_State.Timer3 = RESET;
       }
 
@@ -178,7 +180,7 @@ int main(void)
 
           // 刷新LCD上的endVal
           lcd_setCursor(0, 1);
-          lcd_printf("Up:%d", endVal);
+          lcd_printf("Up:%2d", endVal);
           lcd_setCursor(4, 1);
           lcd_sendCmd(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON); // 显示光标
 
@@ -188,11 +190,12 @@ int main(void)
               if((HAL_GetTick()-uiTick) > 2000) { break; } // 检测按键是否超时（2s），在该时间内按下按键会刷新uiTick的值
               else if(GPIO_State.KEY1 == SET){ // 按下按键
                   // 自增endVal
-                  if(endVal>=90) { endVal = 50; } // 大于90后，重置为30.
+                  if(endVal>=90) { endVal = 30; } // 大于90后，重置为30.
                   else { endVal += 5; }
+//                  endVal = (endVal+5) % 90;
                   // 刷新LCD上的endVal
                   lcd_setCursor(0, 1);
-                  lcd_printf("Up:%d", endVal);
+                  lcd_printf("Up:%2d", endVal);
                   lcd_setCursor(4, 1);
                   uiTick = HAL_GetTick(); // 两秒内按下按键，则刷新uiTick值。
                   GPIO_State.KEY1 = RESET;

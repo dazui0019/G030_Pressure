@@ -7,6 +7,8 @@
 #include "printf.h"
 #include "pressure.h"
 
+uint8_t backlightval = LCD_BACKLIGHT;
+
 /**
  * @brief 采用4bit模式向LCD发送数据以及命令
  * @param data[in]
@@ -24,11 +26,11 @@ static HAL_StatusTypeDef lcd_fourBit_Write(uint8_t data, uint8_t rs){
     uint8_t DATA_BUFFER[4];
     // 分割成高低四位，然后还要改变EN引脚的电平，所以一共有四部分
     // 高四位
-    DATA_BUFFER[0] = (HIGH_BIT | rs | En | LCD_BACKLIGHT); // EN = 1
-    DATA_BUFFER[1] = (HIGH_BIT | rs | LCD_BACKLIGHT);      // EN = 0
+    DATA_BUFFER[0] = (HIGH_BIT | rs | En | backlightval); // EN = 1
+    DATA_BUFFER[1] = (HIGH_BIT | rs | backlightval);      // EN = 0
     // 低四位
-    DATA_BUFFER[2] = (LOW_BIT | rs | En | LCD_BACKLIGHT); // EN = 1
-    DATA_BUFFER[3] = (LOW_BIT | rs | LCD_BACKLIGHT);      // EN = 0
+    DATA_BUFFER[2] = (LOW_BIT | rs | En | backlightval); // EN = 1
+    DATA_BUFFER[3] = (LOW_BIT | rs | backlightval);      // EN = 0
     HAL_Delay(LCD_DELAY_MS);
     while((HAL_I2C_IsDeviceReady(IIC_DEVICE, PCF8574_ADDR, 1, 100)) != HAL_OK){}
     return HAL_I2C_Master_Transmit(IIC_DEVICE, PCF8574_ADDR, (uint8_t*)DATA_BUFFER, sizeof(DATA_BUFFER), 100);
@@ -146,6 +148,27 @@ uint8_t lcd_createChars(uint8_t buff[][8], uint8_t addr, uint8_t len){
     return 0;
 }
 
+void backLight_blink(){
+    uint8_t DATA_BUFFER[6];
+    // 分割成高低四位，然后还要改变EN引脚的电平，所以一共有四部分
+    // 高四位
+    DATA_BUFFER[0] = (0x00 | En | backlightval); // EN = 1
+    DATA_BUFFER[1] = (0x00 | backlightval);      // EN = 0
+    // 低四位
+    DATA_BUFFER[2] = (0x00 | En | backlightval); // EN = 1
+    DATA_BUFFER[3] = (0x00 | backlightval);      // EN = 0
+    // 低四位
+    DATA_BUFFER[4] = (0x00 | En | backlightval); // EN = 1
+    DATA_BUFFER[5] = (0x00 | backlightval);      // EN = 0
+    HAL_Delay(LCD_DELAY_MS);
+    while((HAL_I2C_IsDeviceReady(IIC_DEVICE, PCF8574_ADDR, 1, 100)) != HAL_OK){}
+    HAL_I2C_Master_Transmit(IIC_DEVICE, PCF8574_ADDR, (uint8_t*)DATA_BUFFER, 2, 100);
+    HAL_Delay(200);
+    HAL_I2C_Master_Transmit(IIC_DEVICE, PCF8574_ADDR, (uint8_t*)(DATA_BUFFER+2), 2, 100);
+    HAL_Delay(200);
+    HAL_I2C_Master_Transmit(IIC_DEVICE, PCF8574_ADDR, (uint8_t*)(DATA_BUFFER+4), 2, 100);
+}
+
 // 显示框架
 uint8_t lcd_print_frame(){
     lcd_print_c(frame[0],0,0);
@@ -233,4 +256,19 @@ void tiny_lcd_cloud(uint8_t col){
  */
 void lcd_display_sta(muscleStatus sta){
     lcd_print_c(sta_str[sta], 10, 1);
+}
+
+/**
+ * @brief 打印肌肉状态, 并闪烁背光
+ * @param sta
+ */
+void lcd_display_sta_b(muscleStatus sta){
+    for(uint8_t i = 3; i--; ){
+        backlightval = LCD_NOBACKLIGHT;
+        lcd_print_c(sta_str[sta], 10, 1);
+        HAL_Delay(150);
+        backlightval = LCD_BACKLIGHT;
+        lcd_print_c(sta_str[sta], 10, 1);
+        HAL_Delay(150);
+    }
 }
