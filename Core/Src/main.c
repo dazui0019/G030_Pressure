@@ -122,7 +122,7 @@ int main(void)
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_Base_Start_IT(&htim3);
     init_print(&huart1); // 重定向printf()
-    printf("%s\r\n", "printf retargeted!");
+//    printf("%s\r\n", "printf retargeted!");
     pressure_init(&hadc1, &prsList);
     println("pressure init");
     lcd_init();
