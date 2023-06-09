@@ -12,6 +12,8 @@
 
 #define CVT_BUFFER 20
 
+//#define MSL_STA
+
 /**
  * @brief 传感器结构体
 */

@@ -1,0 +1,10 @@
+../Core/Src/printf.c:88:13:uli2a	40	static
+../Core/Src/printf.c:170:13:putchw	24	static
+../Core/Src/printf.c:285:13:putcp	0	static
+../Core/Src/printf.c:261:6:hal_putchar	16	static
+../Core/Src/printf.c:183:6:tfp_format	64	static
+../Core/Src/printf.c:272:6:init_print	0	static
+../Core/Src/printf.c:277:6:tfp_printf	16	static
+../Core/Src/printf.c:292:6:tfp_sprintf	20	static
+../Core/Src/printf.c:301:6:print	16	static
+../Core/Src/printf.c:306:6:println	16	static

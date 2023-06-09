@@ -1,0 +1,3 @@
+../Core/Src/it_manager.c:19:6:HAL_TIM_PeriodElapsedCallback	0	static
+../Core/Src/it_manager.c:32:6:HAL_GPIO_EXTI_Falling_Callback	8	static
+../Core/Src/it_manager.c:39:6:HAL_GPIO_EXTI_Rising_Callback	16	static

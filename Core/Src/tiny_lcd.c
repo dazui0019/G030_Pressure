@@ -49,7 +49,9 @@ void lcd_sendData(uint8_t data){
  * @param cmd[in]
  */
 void lcd_sendCmd(uint8_t cmd){
-    lcd_fourBit_Write(cmd, LCD_COMMAND);
+    HAL_StatusTypeDef ret;
+    ret = lcd_fourBit_Write(cmd, LCD_COMMAND);
+    if(ret != HAL_OK) { printf("I2C ERROR, CODE: %x", ret); }
 }
 
 /**
@@ -58,6 +60,7 @@ void lcd_sendCmd(uint8_t cmd){
  * @param row[in] 行坐标
  */
 void lcd_setCursor(uint8_t col, uint8_t row){
+//    HAL_StatusTypeDef ret;
     //                           row:0    row:1     row:2   row:3
     uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
     lcd_sendCmd(LCD_SETDDRAMADDR|(col + row_offsets[row]));
@@ -172,7 +175,9 @@ void backLight_blink(){
 // 显示框架
 uint8_t lcd_print_frame(){
     lcd_print_c(frame[0],0,0);
+#ifdef MSL_STA
     lcd_print_c(frame[1],0,1);
+#endif
     return 0;
 }
 
@@ -254,7 +259,7 @@ void tiny_lcd_cloud(uint8_t col){
  * @brief 打印肌肉状态
  * @param sta
  */
-void lcd_display_sta(muscleStatus sta){
+void lcd_display_sta(measStatus sta){
     lcd_print_c(sta_str[sta], 10, 1);
 }
 
@@ -262,7 +267,7 @@ void lcd_display_sta(muscleStatus sta){
  * @brief 打印肌肉状态, 并闪烁背光
  * @param sta
  */
-void lcd_display_sta_b(muscleStatus sta){
+void lcd_display_sta_b(measStatus sta){
     for(uint8_t i = 3; i--; ){
         backlightval = LCD_NOBACKLIGHT;
         lcd_print_c(sta_str[sta], 10, 1);

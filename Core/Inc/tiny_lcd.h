@@ -8,6 +8,8 @@
 #include "main.h"
 #include "i2c.h"
 
+#define MSL_STA // 显示状态（第二排）
+
 static uint8_t cloud[][8] = {
         {0B00000, 0B00001, 0B00111, 0B01100, 0B01000, 0B01000, 0B00110, 0B00001},
         {0B01111, 0B10000, 0B00000, 0B00000, 0B00000, 0B00000, 0B00000, 0B11111},
@@ -19,11 +21,18 @@ static uint8_t cloud[][8] = {
 };
 
 static const char* const frame[] = {
-        "Prs:      kPa",
-        "Up:30 STA:read."
+        "Prs:       kPa",
+        "Up:5  STA:ready"
 };
 
-static const char* const sta_str[] = {"tens ", "relax", "ready"};
+static const char* const sta_str[] = {
+        "tens ",
+        "relax",
+        "ready",
+        "meas ",
+        "error",
+        "norm "
+};
 
 /**
  * PCF8574 参数
@@ -85,13 +94,16 @@ static const char* const sta_str[] = {"tens ", "relax", "ready"};
 #define Rs 0B00000001  // Register select bit
 
 /**
- * @brief 肌肉状态
+ * @brief 显示状态
  */
 typedef enum{
-    TENSION = 0x00,
-    RELAX   = 0x01,
-    READY   = 0x02
-}muscleStatus;
+    TENSION = 0x00, // 紧张（肌肉）
+    RELAX   = 0x01, // 放松（肌肉）
+    READY   = 0x02, // 准备测量
+    MEASURE = 0x03, // 正在测量
+    INVALID = 0x04, // 测量值无效
+    NORMAL  = 0x05  // 正常（肌肉）
+}measStatus;
 
 void lcd_init();
 static HAL_StatusTypeDef lcd_fourBit_Write(uint8_t data, uint8_t rs);
@@ -106,8 +118,8 @@ void lcd_print_c(char const str[], uint8_t col, uint8_t row);
 void lcd_printf(char *fmt, ...);
 uint8_t lcd_print_frame();
 void lcd_print_val(double val);
-void lcd_display_sta(muscleStatus sta);
-void lcd_display_sta_b(muscleStatus sta);
+void lcd_display_sta(measStatus sta);
+void lcd_display_sta_b(measStatus sta);
 void backLight_blink();
 
 #endif //G030_PRESSURE_TINY_LCD_H

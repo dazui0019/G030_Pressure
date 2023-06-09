@@ -1,0 +1,15 @@
+../Core/Src/tiny_lcd.c:18:26:lcd_fourBit_Write	32	static
+../Core/Src/tiny_lcd.c:43:6:lcd_sendData	8	static
+../Core/Src/tiny_lcd.c:51:6:lcd_sendCmd	8	static
+../Core/Src/tiny_lcd.c:62:6:lcd_setCursor	16	static
+../Core/Src/tiny_lcd.c:74:6:lcd_init	8	static
+../Core/Src/tiny_lcd.c:95:6:lcd_print	16	static
+../Core/Src/tiny_lcd.c:106:6:lcd_print_c	8	static
+../Core/Src/tiny_lcd.c:117:6:lcd_printf	32	static
+../Core/Src/tiny_lcd.c:145:9:lcd_createChars	32	static
+../Core/Src/tiny_lcd.c:154:6:backLight_blink	32	static
+../Core/Src/tiny_lcd.c:176:9:lcd_print_frame	8	static
+../Core/Src/tiny_lcd.c:188:6:lcd_print_val	144	static
+../Core/Src/tiny_lcd.c:230:6:tiny_lcd_cloud	8	static
+../Core/Src/tiny_lcd.c:262:6:lcd_display_sta	8	static
+../Core/Src/tiny_lcd.c:270:6:lcd_display_sta_b	32	static

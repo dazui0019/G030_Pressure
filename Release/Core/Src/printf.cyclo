@@ -1,0 +1,10 @@
+printf.c:88:13:uli2a	8
+printf.c:170:13:putchw	6
+printf.c:285:13:putcp	1
+printf.c:261:6:hal_putchar	1
+printf.c:183:6:tfp_format	32
+printf.c:272:6:init_print	1
+printf.c:277:6:tfp_printf	1
+printf.c:292:6:tfp_sprintf	1
+printf.c:301:6:print	2
+printf.c:306:6:println	2
